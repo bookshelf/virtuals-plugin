@@ -111,6 +111,44 @@ describe('Virtuals Plugin', function() {
     equal(m.attributes['fullName'], undefined)
   })
 
+  it('save should be rejected after `set` throws an exception during a `patch` operation', function() {
+    const Model = bookshelf.Model.extend({
+      tableName: 'authors',
+      virtuals: {
+        will_cause_error: {
+          set(fullName) {
+            throw new Error('Deliberately failing')
+          },
+          get: () => {}
+        }
+      }
+    })
+
+    return Model.forge({ id: 4, first_name: 'Ned' })
+      .save({ will_cause_error: 'value' }, { patch: true })
+      .catch(error => {
+        equal(error.message, 'Deliberately failing')
+      })
+  })
+
+  it('patches the model\'s "lodash" methods', function() {
+    const m = new (bookshelf.Model.extend({
+      outputVirtuals: true,
+      virtuals: {
+        fullName() {
+          return this.get('firstName') + ' ' + this.get('lastName')
+        }
+      }
+    }))({ firstName: 'Joe', lastName: 'Shmoe' })
+
+    deepEqual(m.keys(), ['firstName', 'lastName', 'fullName'])
+    deepEqual(m.values(), ['Joe', 'Shmoe', 'Joe Shmoe'])
+    deepEqual(m.toPairs(), [['firstName', 'Joe'], ['lastName', 'Shmoe'], ['fullName', 'Joe Shmoe']])
+    deepEqual(m.invert(), { Joe: 'firstName', Shmoe: 'lastName', 'Joe Shmoe': 'fullName' })
+    deepEqual(m.pick('fullName'), { fullName: 'Joe Shmoe' })
+    deepEqual(m.omit('firstName'), { lastName: 'Shmoe', fullName: 'Joe Shmoe' })
+  })
+
   describe('Model#get()', function() {
     it('can access parameterized virtual properties with getter and setter', function() {
       const m = new (bookshelf.Model.extend({
@@ -407,24 +445,6 @@ describe('Virtuals Plugin', function() {
     })
   })
 
-  it('patches "lodash" methods', function() {
-    const m = new (bookshelf.Model.extend({
-      outputVirtuals: true,
-      virtuals: {
-        fullName() {
-          return this.get('firstName') + ' ' + this.get('lastName')
-        }
-      }
-    }))({ firstName: 'Joe', lastName: 'Shmoe' })
-
-    deepEqual(m.keys(), ['firstName', 'lastName', 'fullName'])
-    deepEqual(m.values(), ['Joe', 'Shmoe', 'Joe Shmoe'])
-    deepEqual(m.toPairs(), [['firstName', 'Joe'], ['lastName', 'Shmoe'], ['fullName', 'Joe Shmoe']])
-    deepEqual(m.invert(), { Joe: 'firstName', Shmoe: 'lastName', 'Joe Shmoe': 'fullName' })
-    deepEqual(m.pick('fullName'), { fullName: 'Joe Shmoe' })
-    deepEqual(m.omit('firstName'), { lastName: 'Shmoe', fullName: 'Joe Shmoe' })
-  })
-
   describe('behaves correctly during a `patch` save', function() {
     const generalExpect = function(result) {
       equal(result.get('site_id'), 2)
@@ -488,25 +508,5 @@ describe('Virtuals Plugin', function() {
         .then(result => result.refresh())
         .tap(generalExpect)
     })
-  })
-
-  it('save should be rejected after `set` throws an exception during a `patch` operation', function() {
-    const Model = bookshelf.Model.extend({
-      tableName: 'authors',
-      virtuals: {
-        will_cause_error: {
-          set(fullName) {
-            throw new Error('Deliberately failing')
-          },
-          get: () => {}
-        }
-      }
-    })
-
-    return Model.forge({ id: 4, first_name: 'Ned' })
-      .save({ will_cause_error: 'value' }, { patch: true })
-      .catch(error => {
-        equal(error.message, 'Deliberately failing')
-      })
   })
 })
