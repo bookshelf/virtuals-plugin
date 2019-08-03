@@ -16,9 +16,7 @@ describe('Virtuals Plugin', function() {
     })
   })
 
-  beforeEach(() => {
-    return db('authors').truncate()
-  })
+  beforeEach(() => db('authors').truncate())
 
   after(() => db.destroy())
 
@@ -219,7 +217,6 @@ describe('Virtuals Plugin', function() {
           }
         }
       }))()
-
       m.set('fullName', 'Jack Shmoe')
 
       equal(m.get('firstName'), 'Jack')
@@ -241,7 +238,6 @@ describe('Virtuals Plugin', function() {
           }
         }
       }))()
-
       m.set({ fullName: 'Peter Griffin', dogName: 'Brian' })
 
       equal(m.get('firstName'), 'Peter')
@@ -264,10 +260,9 @@ describe('Virtuals Plugin', function() {
           }
         }
       }))()
-
       m.set('fullName', 'Jack Shmoe')
 
-      equal(m.attributes['fullName'], undefined)
+      equal(m.attributes.fullName, undefined)
     })
 
     it('does not set actual attribute on model when setting virtual with object', function() {
@@ -285,13 +280,12 @@ describe('Virtuals Plugin', function() {
           }
         }
       }))()
-
       m.set({ fullName: 'Jack Shmoe' })
 
-      equal(m.attributes['fullName'], undefined)
+      equal(m.attributes.fullName, undefined)
     })
 
-    it('defaults virtual properties with no setter to a noop', function() {
+    it('does not set virtual properties if no setter is specified', function() {
       const m = new (bookshelf.Model.extend({
         virtuals: {
           fullName() {
@@ -306,7 +300,7 @@ describe('Virtuals Plugin', function() {
       equal(m.attributes.fullName, undefined)
     })
 
-    it('does not crash when no virtuals are set - #168', function() {
+    it('does not crash when no virtuals are set', function() {
       const m = new bookshelf.Model()
       m.set('firstName', 'Joe')
       equal(m.get('firstName'), 'Joe')
