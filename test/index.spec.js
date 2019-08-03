@@ -301,6 +301,8 @@ describe('Virtuals Plugin', function() {
       }))()
       m.set('fullName', 'John Doe')
 
+      equal(m.get('firstName'), undefined)
+      equal(m.get('lastName'), undefined)
       equal(m.attributes.fullName, undefined)
     })
 
