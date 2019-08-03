@@ -1,0 +1,22 @@
+# .travis.yml
+language: node_js
+dist: bionic
+sudo: false
+
+cache:
+  directories:
+    - node_modules
+
+node_js:
+  - '8'
+  - '10'
+  - '12'
+
+notifications:
+  email: false
+
+env:
+  - KNEX_TEST_TIMEOUT=60000
+
+matrix:
+  fast_finish: true
