@@ -11,7 +11,7 @@
     "jsdoc": "./scripts/jsdoc.sh",
     "postpublish": "./scripts/postpublish.sh"
   },
-  "homepage": "https://bookshelfjs.org",
+  "homepage": "https://github.com/bookshelf/virtuals-plugin",
   "repository": {
     "type": "git",
     "url": "https://github.com/bookshelf/virtuals-plugin.git"
