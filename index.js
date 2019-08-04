@@ -13,7 +13,7 @@ module.exports = function(bookshelf) {
     constructor: function(attributes, options) {
       proto.constructor.apply(this, arguments)
       const virtuals = this.virtuals
-      if (_.isObject(virtuals)) {
+      if (virtuals && typeof virtuals === 'object') {
         for (const virtualName in virtuals) {
           let getter, setter
           if (virtuals[virtualName].get) {
@@ -41,7 +41,7 @@ module.exports = function(bookshelf) {
       }
       if (!options || options.virtuals !== false) {
         if ((options && options.virtuals === true) || this.outputVirtuals) {
-          attrs = _.extend(attrs, getVirtuals(this, options && options.virtualParams))
+          attrs = Object.assign(attrs, getVirtuals(this, options && options.virtualParams))
         }
       }
       return attrs
@@ -49,7 +49,7 @@ module.exports = function(bookshelf) {
 
     // Allow virtuals to be fetched like normal properties
     get: function(attr) {
-      if (_.isObject(this.virtuals) && this.virtuals[attr]) {
+      if (this.virtuals && typeof this.virtuals === 'object' && this.virtuals[attr]) {
         return getVirtual.apply(undefined, [this, attr].concat(Array.from(arguments).slice(1)))
       }
       return proto.get.apply(this, arguments)
@@ -66,10 +66,10 @@ module.exports = function(bookshelf) {
       const isPatching = this.patchAttributes != null
 
       // Handle `{key: value}` style arguments.
-      if (_.isObject(key)) {
-        const nonVirtuals = _.omitBy(key, _.bind(setVirtual, this))
+      if (key && typeof key === 'object') {
+        const nonVirtuals = _.omitBy(key, setVirtual.bind(this))
         if (isPatching) {
-          _.extend(this.patchAttributes, nonVirtuals)
+          Object.assign(this.patchAttributes, nonVirtuals)
         }
         // Set the non-virtual attributes as normal.
         return proto.set.call(this, nonVirtuals, options)
@@ -91,18 +91,18 @@ module.exports = function(bookshelf) {
 
     // Override `save` to keep track of state while doing a `patch` operation.
     save: function(key, value, options) {
-      let attrs
+      let attrs = {}
 
       // Handle both `"key", value` and `{key: value}` -style arguments.
       if (key == null || typeof key === 'object') {
-        attrs = (key && _.clone(key)) || {}
+        attrs = key && _.clone(key)
         options = _.clone(value) || {}
       } else {
-        ;(attrs = {})[key] = value
+        attrs[key] = value
         options = options ? _.clone(options) : {}
       }
 
-      // Determine whether which kind of save we will do, update or insert.
+      // Determine whether to save using update or insert
       options.method = this.saveMethod(options)
 
       // Check if we're going to do a patch, in which case deal with virtuals now.
@@ -114,22 +114,17 @@ module.exports = function(bookshelf) {
 
         // Any setter could throw. We need to reject `save` if they do.
         try {
-          // Check if any of the patch attributes are virtuals. If so call their
-          // setter. Any setter that calls `this.set` will be modifying
-          // `this.patchAttributes` instead of `this.attributes`.
-          _.each(
-            attrs,
-            function(value, key) {
-              if (setVirtual.call(this, value, key)) {
-                // This was a virtual, so remove it from the attributes to be
-                // passed to `Model.save`.
-                delete attrs[key]
-              }
-            }.bind(this)
-          )
+          // Check if any of the patch attributes are virtuals. If so call their setter. Any setter that calls
+          // `this.set` will be modifying `this.patchAttributes` instead of `this.attributes`.
+          for (const attributeName in attrs) {
+            if (setVirtual.call(this, attrs[attributeName], attributeName)) {
+              // This was a virtual, so remove it from the attributes to be passed to `Model.save`.
+              delete attrs[attributeName]
+            }
+          }
 
           // Now add any changes that occurred during the update.
-          _.extend(attrs, this.patchAttributes)
+          Object.assign(attrs, this.patchAttributes)
         } catch (e) {
           return Promise.reject(e)
         } finally {
@@ -146,14 +141,14 @@ module.exports = function(bookshelf) {
   const modelMethods = ['keys', 'values', 'toPairs', 'invert', 'pick', 'omit']
 
   // Mix in each Lodash method as a proxy to `Model#attributes`.
-  _.each(modelMethods, function(method) {
+  modelMethods.forEach(method => {
     Model.prototype[method] = function() {
-      return _[method].apply(_, [_.extend({}, this.attributes, getVirtuals(this))].concat(Array.from(arguments)))
+      return _[method].apply(_, [Object.assign({}, this.attributes, getVirtuals(this))].concat(Array.from(arguments)))
     }
   })
 
   function getVirtual(model, virtualName) {
-    if (_.isObject(model.virtuals) && model.virtuals[virtualName]) {
+    if (model.virtuals && typeof model.virtuals === 'object' && model.virtuals[virtualName]) {
       const virtualParams = Array.from(arguments).slice(2)
 
       return model.virtuals[virtualName].get
