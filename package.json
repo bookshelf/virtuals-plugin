@@ -7,9 +7,7 @@
     "lint:fix": "prettier --write 'index.js' 'test/**/*.js'",
     "lint": "eslint index.js test/",
     "pretest": "npm run lint",
-    "test": "nyc mocha --check-leaks -t 10000",
-    "jsdoc": "./scripts/jsdoc.sh",
-    "postpublish": "./scripts/postpublish.sh"
+    "test": "nyc mocha --check-leaks -t 10000"
   },
   "homepage": "https://github.com/bookshelf/virtuals-plugin",
   "repository": {
