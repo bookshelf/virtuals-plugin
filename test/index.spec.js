@@ -109,6 +109,29 @@ describe('Virtuals Plugin', function() {
     equal(m.attributes['fullName'], undefined)
   })
 
+  it("saves virtual attributes when passing `'key', 'value'` style arguments", function() {
+    const Model = bookshelf.Model.extend({
+      tableName: 'authors',
+      virtuals: {
+        full_name: {
+          set(value) {
+            value = value.split(' ')
+            this.set('first_name', value[0])
+            this.set('last_name', value[1])
+          },
+          get: () => {}
+        }
+      }
+    })
+
+    return Model.forge({ site_id: 1 })
+      .save('full_name', 'Oderus Urungus')
+      .then(savedModel => {
+        equal(savedModel.get('first_name'), 'Oderus')
+        equal(savedModel.get('last_name'), 'Urungus')
+      })
+  })
+
   it('save should be rejected after `set` throws an exception during a `patch` operation', function() {
     const Model = bookshelf.Model.extend({
       tableName: 'authors',
@@ -304,6 +327,12 @@ describe('Virtuals Plugin', function() {
       const m = new bookshelf.Model()
       m.set('firstName', 'Joe')
       equal(m.get('firstName'), 'Joe')
+    })
+
+    it('does nothing if not passing a key name', function() {
+      const m = new bookshelf.Model()
+      m.set()
+      deepEqual(m.attributes, {})
     })
   })
 
