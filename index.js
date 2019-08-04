@@ -1,5 +1,32 @@
 const _ = require('lodash')
 
+function getVirtual(model, virtualName, ...virtuals) {
+  if (model.virtuals && typeof model.virtuals === 'object' && model.virtuals[virtualName]) {
+    return model.virtuals[virtualName].get
+      ? model.virtuals[virtualName].get.apply(model, virtuals)
+      : model.virtuals[virtualName].apply(model, virtuals)
+  }
+}
+
+function getVirtuals(model, params) {
+  const attrs = {}
+  if (model.virtuals != null) {
+    for (const virtualName in model.virtuals) {
+      const paramsForVirtual = typeof params === 'object' && params !== null ? params[virtualName] : undefined
+      attrs[virtualName] = getVirtual(model, virtualName, paramsForVirtual)
+    }
+  }
+  return attrs
+}
+
+function setVirtual(value, key) {
+  const virtual = this.virtuals && this.virtuals[key]
+  if (virtual) {
+    if (virtual.set) virtual.set.call(this, value)
+    return true
+  }
+}
+
 // Virtuals Plugin
 // Allows getting/setting virtual (computed) properties on model instances.
 // -----
@@ -57,9 +84,7 @@ module.exports = function(bookshelf) {
 
     // Allow virtuals to be set like normal properties
     set: function(key, value, options) {
-      if (key == null) {
-        return this
-      }
+      if (!key) return this
 
       // Determine whether we're in the middle of a patch operation based on the
       // existence of the `patchAttributes` object.
@@ -146,37 +171,6 @@ module.exports = function(bookshelf) {
       return _[method].apply(_, [Object.assign({}, this.attributes, getVirtuals(this))].concat(Array.from(arguments)))
     }
   })
-
-  function getVirtual(model, virtualName) {
-    if (model.virtuals && typeof model.virtuals === 'object' && model.virtuals[virtualName]) {
-      const virtualParams = Array.from(arguments).slice(2)
-
-      return model.virtuals[virtualName].get
-        ? model.virtuals[virtualName].get.apply(model, virtualParams)
-        : model.virtuals[virtualName].apply(model, virtualParams)
-    }
-  }
-
-  function getVirtuals(model, params) {
-    const attrs = {}
-    if (model.virtuals != null) {
-      for (const virtualName in model.virtuals) {
-        const paramsForVirtual = typeof params === 'object' && params !== null ? params[virtualName] : undefined
-        attrs[virtualName] = getVirtual(model, virtualName, paramsForVirtual)
-      }
-    }
-    return attrs
-  }
-
-  function setVirtual(value, key) {
-    const virtual = this.virtuals && this.virtuals[key]
-    if (virtual) {
-      if (virtual.set) {
-        virtual.set.call(this, value)
-      }
-      return true
-    }
-  }
 
   bookshelf.Model = Model
 }
