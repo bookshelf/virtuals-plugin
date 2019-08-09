@@ -1,6 +1,6 @@
 {
   "name": "bookshelf-virtuals-plugin",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A plugin for Bookshelf that allows getting or setting virtual properties on model instances.",
   "main": "index.js",
   "scripts": {
