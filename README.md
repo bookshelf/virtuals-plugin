@@ -11,6 +11,7 @@ First install the package:
 
     npm install bookshelf-virtuals-plugin
 
-Then load the plugin using `bookshelf.plugin('virtuals')`. Now you are all set to define virtual properties on your models.
+Then load the plugin using `bookshelf.plugin('bookshelf-virtuals-plugin')`. Now you are all set to define virtual
+properties on your models.
 
 For more information check the online [wiki page](https://github.com/bookshelf/virtuals-plugin/wiki/Bookshelf-Virtuals-Plugin).
