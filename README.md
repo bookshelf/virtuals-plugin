@@ -1,6 +1,6 @@
 # Bookshelf Virtuals Plugin
 
-[![Build Status](https://travis-ci.com/bookshelf/virtuals-plugin.svg?branch=master)](https://travis-ci.com/bookshelf/virtuals-plugin)
+[![Build Status](https://travis-ci.com/bookshelf/virtuals-plugin.svg?branch=master)](https://travis-ci.com/bookshelf/virtuals-plugin) [![Greenkeeper badge](https://badges.greenkeeper.io/bookshelf/virtuals-plugin.svg)](https://greenkeeper.io/)
 
 This is a plugin for the [Bookshelf Node.js ORM](https://bookshelfjs.org/) that allows getting or setting virtual
 (computed) properties on model instances.
