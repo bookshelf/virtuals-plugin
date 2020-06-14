@@ -30,14 +30,14 @@ function setVirtual(value, key) {
 // Virtuals Plugin
 // Allows getting/setting virtual (computed) properties on model instances.
 // -----
-module.exports = function(bookshelf) {
+module.exports = (bookshelf) => {
   const proto = bookshelf.Model.prototype
   const Model = bookshelf.Model.extend({
     outputVirtuals: true,
 
     // If virtual properties have been defined they will be created
     // as simple getters on the model.
-    constructor: function(attributes, options) {
+    constructor(attributes, options) {
       proto.constructor.apply(this, arguments)
       const virtuals = this.virtuals
       if (virtuals && typeof virtuals === 'object') {
@@ -61,7 +61,7 @@ module.exports = function(bookshelf) {
     // Passing `{virtuals: true}` or `{virtuals: false}` in the `options`
     // controls including virtuals on function-level and overrides the
     // model-level setting
-    toJSON: function(options) {
+    toJSON(options) {
       let attrs = proto.toJSON.call(this, options)
       if (options && options.omitNew && this.isNew()) {
         return attrs
@@ -75,7 +75,7 @@ module.exports = function(bookshelf) {
     },
 
     // Allow virtuals to be fetched like normal properties
-    get: function(attr) {
+    get(attr) {
       if (this.virtuals && typeof this.virtuals === 'object' && this.virtuals[attr]) {
         return getVirtual.apply(undefined, [this, attr].concat(Array.from(arguments).slice(1)))
       }
@@ -83,7 +83,7 @@ module.exports = function(bookshelf) {
     },
 
     // Allow virtuals to be set like normal properties
-    set: function(key, value, options) {
+    set(key, value, options) {
       if (!key) return this
 
       // Determine whether we're in the middle of a patch operation based on the
@@ -115,7 +115,7 @@ module.exports = function(bookshelf) {
     },
 
     // Override `save` to keep track of state while doing a `patch` operation.
-    save: function(key, value, options) {
+    save(key, value, options) {
       let attrs = {}
 
       // Handle both `"key", value` and `{key: value}` -style arguments.
@@ -166,8 +166,8 @@ module.exports = function(bookshelf) {
   const modelMethods = ['keys', 'values', 'toPairs', 'invert', 'pick', 'omit']
 
   // Mix in each Lodash method as a proxy to `Model#attributes`.
-  modelMethods.forEach(method => {
-    Model.prototype[method] = function() {
+  modelMethods.forEach((method) => {
+    Model.prototype[method] = function () {
       return _[method].apply(_, [Object.assign({}, this.attributes, getVirtuals(this))].concat(Array.from(arguments)))
     }
   })
